@@ -4,12 +4,12 @@
 export default function About() {
   return (
     <div className="mx-5 grid min-h-screen md:mx-36">
-      <article className="place-items-left mx-auto my-auto mt-20 flex w-full max-w-6xl flex-col gap-6 rounded-3xl bg-gray-100 p-6 text-jet lg:p-10 xl:p-16">
+      <article className="place-items-left mx-auto my-auto mt-20 flex w-full max-w-6xl flex-col gap-6 rounded-3xlbg-violet-200 p-6 text-jet lg:p-10 xl:p-16">
         <div className="flex items-center">
-          <p className="mr-2 text-3xl">About DocsGPT</p>
+          <p className="mr-2  text-3xl">About DocsGPT</p>
           <p className="text-[21px]">🦖</p>
         </div>
-        <p className="mt-4">
+        <p className="mt-4 text- neutral-950">
           Find the information in your documentation through AI-powered
           <a
             className="text-blue-500"
@@ -20,7 +20,10 @@ export default function About() {
             {' '}
             open-source{' '}
           </a>
-          chatbot. Powered by GPT-3, Faiss and LangChain.
+          chatbot. Powered by
+          <span className= "text-purple-950 font-semibold" >GPT-3</span>,
+          <span className= "text-purple-950 font-semibold" >Faiss</span> and 
+          <span className= "text-purple-950 font-semibold" >LangChain</span>.
         </p>
 
         <div>
