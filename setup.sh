@@ -32,9 +32,9 @@ download_locally() {
     docker-compose -f docker-compose-local.yaml build && docker-compose -f docker-compose-local.yaml up -d
     #python -m venv venv
     #source venv/bin/activate
-    #pip install -r application/requirements.txt
-    #pip install llama-cpp-python
-    #pip install sentence-transformers
+    pip install -r application/requirements.txt
+    pip install llama-cpp-python
+    pip install sentence-transformers
     export LLM_NAME=llama.cpp
     export EMBEDDINGS_NAME=huggingface_sentence-transformers/all-mpnet-base-v2
     export FLASK_APP=application/app.py
