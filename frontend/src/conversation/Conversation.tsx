@@ -4,7 +4,7 @@ import { useDarkTheme } from '../hooks';
 import Hero from '../Hero';
 import { AppDispatch } from '../store';
 import ConversationBubble from './ConversationBubble';
-import conversationSlice, {
+import {
   addQuery,
   fetchAnswer,
   selectQueries,
@@ -12,24 +12,27 @@ import conversationSlice, {
   updateQuery,
 } from './conversationSlice';
 import Send from './../assets/send.svg';
-import SendDark from './../assets/send_dark.svg'
+import SendDark from './../assets/send_dark.svg';
 import Spinner from './../assets/spinner.svg';
 import { FEEDBACK, Query } from './conversationModels';
 import { sendFeedback } from './conversationApi';
 import ArrowDown from './../assets/arrow-down.svg';
-import { selectConversationId } from '../preferences/preferenceSlice';
 export default function Conversation() {
   const queries = useSelector(selectQueries);
   const status = useSelector(selectStatus);
-  const conversationId = useSelector(selectConversationId)
   const dispatch = useDispatch<AppDispatch>();
   const endMessageRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLDivElement>(null);
   const [isDarkTheme] = useDarkTheme();
   const [hasScrolledToLast, setHasScrolledToLast] = useState(true);
-  const fetchStream = useRef<any>(null)
+  const fetchStream = useRef<any>(null);
+  const [eventInterrupt, setEventInterrupt] = useState(false);
+
+  const handleUserInterruption = () => {
+    if (!eventInterrupt && status === 'loading') setEventInterrupt(true);
+  };
   useEffect(() => {
-    scrollIntoView();
+    !eventInterrupt && scrollIntoView();
   }, [queries.length, queries[queries.length - 1]]);
 
   useEffect(() => {
@@ -44,8 +47,9 @@ export default function Conversation() {
       if (status !== 'idle') {
         fetchStream.current && fetchStream.current.abort(); //abort previous stream
       }
-    }
-  }, [status])
+    };
+  }, [status]);
+
   useEffect(() => {
     const observerCallback: IntersectionObserverCallback = (entries) => {
       entries.forEach((entry) => {
@@ -76,9 +80,9 @@ export default function Conversation() {
   const handleQuestion = (question: string) => {
     question = question.trim();
     if (question === '') return;
+    setEventInterrupt(false);
     dispatch(addQuery({ prompt: question }));
     fetchStream.current = dispatch(fetchAnswer({ question }));
-
   };
   const handleFeedback = (query: Query, feedback: FEEDBACK, index: number) => {
     const prevFeedback = query.feedback;
@@ -126,12 +130,16 @@ export default function Conversation() {
   };
 
   return (
-    <div className="flex flex-col justify-center p-4 md:flex-row">
+    <div
+      onWheel={handleUserInterruption}
+      onTouchMove={handleUserInterruption}
+      className="flex w-full flex-col justify-center p-4 md:flex-row"
+    >
       {queries.length > 0 && !hasScrolledToLast && (
         <button
           onClick={scrollIntoView}
           aria-label="scroll to bottom"
-          className="fixed bottom-32 right-14 z-10 flex h-7 w-7  items-center justify-center rounded-full border-[0.5px] border-gray-alpha bg-gray-100 dark:bg-purple-taupe bg-opacity-50 md:h-9 md:w-9 md:bg-opacity-100 "
+          className="fixed bottom-32 right-14 z-10 flex h-7 w-7  items-center justify-center rounded-full border-[0.5px] border-gray-alpha bg-gray-100 bg-opacity-50 dark:bg-purple-taupe md:h-9 md:w-9 md:bg-opacity-100 "
         >
           <img
             src={ArrowDown}
@@ -142,12 +150,12 @@ export default function Conversation() {
       )}
 
       {queries.length > 0 && (
-        <div className="mt-20 mb-9  flex flex-col transition-all md:w-3/4">
+        <div className="mt-20 mb-9 flex flex-col transition-all md:w-3/4">
           {queries.map((query, index) => {
             return (
               <Fragment key={index}>
                 <ConversationBubble
-                  className={'last:mb-28 mb-7'}
+                  className={'mb-7 last:mb-28'}
                   key={`${index}QUESTION`}
                   message={query.prompt}
                   type="QUESTION"
@@ -159,10 +167,8 @@ export default function Conversation() {
           })}
         </div>
       )}
-      {queries.length === 0 && (
-        <Hero className="mt-24 h-[100vh] md:mt-52"></Hero>
-      )}
-      <div className="absolute bottom-0 flex w-11/12 md:w-[65%] flex-col items-end self-center bg-white dark:bg-raisin-black pt-4 md:fixed">
+      {queries.length === 0 && <Hero className="mt-24 md:mt-52"></Hero>}
+      <div className="absolute bottom-0 flex w-11/12 flex-col items-end self-center bg-white pt-4 dark:bg-raisin-black md:fixed md:w-[65%]">
         <div className="flex h-full w-full">
           <div
             id="inputbox"
@@ -171,7 +177,7 @@ export default function Conversation() {
             placeholder="Type your message here..."
             contentEditable
             onPaste={handlePaste}
-            className={`border-000000 overflow-x-hidden max-h-24 min-h-[2.6rem] w-full overflow-y-auto whitespace-pre-wrap rounded-3xl border bg-white dark:bg-raisin-black dark:text-bright-gray py-2 pl-4 pr-9 text-base leading-7 opacity-100 focus:outline-none`}
+            className={`border-000000 max-h-24 min-h-[2.6rem] w-full overflow-y-auto overflow-x-hidden whitespace-pre-wrap rounded-3xl border bg-white py-2 pl-4 pr-9 text-base leading-7 opacity-100 focus:outline-none dark:bg-raisin-black dark:text-bright-gray`}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -202,7 +208,7 @@ export default function Conversation() {
             </div>
           )}
         </div>
-        <p className="text-gray-595959 dark:text-bright-gray bg-white dark:bg-raisin-black w-[100vw] self-center bg-transparent p-5 text-center text-xs md:w-full">
+        <p className="text-gray-595959 w-[100vw] self-center bg-white bg-transparent p-5 text-center text-xs dark:bg-raisin-black dark:text-bright-gray md:w-full">
           DocsGPT uses GenAI, please review critial information using sources.
         </p>
       </div>
